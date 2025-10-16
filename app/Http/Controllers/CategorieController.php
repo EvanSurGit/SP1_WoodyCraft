@@ -43,10 +43,14 @@ class CategorieController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Categorie $categorie)
-    {
-        return view('categories.show' , compact('categorie')) ;
-    }
+    public function show(\App\Models\Categorie $categorie)
+{
+    $puzzles = $categorie->puzzles()   // relation hasMany
+        ->latest()
+        ->paginate(12);               // ⬅️ important
+
+    return view('categories.show', compact('categorie', 'puzzles'));
+}
 
     /**
      * Show the form for editing the specified resource.

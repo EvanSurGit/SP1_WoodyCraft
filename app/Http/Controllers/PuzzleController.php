@@ -5,16 +5,40 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Puzzle;
 use App\Models\Categorie;
+use Illuminate\Support\Str;
 
 class PuzzleController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $puzzles = Puzzle::all();
-        return view('puzzles.index', compact('puzzles'));
+        $category = $request->query('category'); // ID ou slug
+        $query = Puzzle::query()->latest();
+
+        // One-to-many (colonne puzzles.categorie_id)
+        if ($category) {
+            if (is_numeric($category)) {
+                $query->where('categorie_id', $category);
+            } else {
+                $cat = Categorie::where('slug', $category)->first();
+                if ($cat) {
+                    $query->where('categorie_id', $cat->id);
+                } else {
+                    $query->whereRaw('1=0'); // catégorie inconnue
+                }
+            }
+        }
+
+        $puzzles    = $query->paginate(12)->withQueryString();
+        $categories = Categorie::orderBy('nom')->get();
+
+        // Produit vedette = le plus récent
+        $offer = \App\Models\Puzzle::latest()->first();
+
+        return view('puzzles.index', compact('puzzles','categories','category','offer'));
+
     }
 
     /**
@@ -22,8 +46,8 @@ class PuzzleController extends Controller
      */
     public function create()
     {
-        $categories = Categorie::all();
-        return view('puzzles.create') ;
+        $categories = Categorie::orderBy('nom')->get();
+        return view('puzzles.create', compact('categories'));
     }
 
     /**
@@ -32,32 +56,58 @@ class PuzzleController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nom' => 'required|max:100',
-            'prix' => 'required|numeric|between:0,999.99',
+            'nom'          => 'required|string|max:255',
             'categorie_id' => 'required|exists:categories,id',
-            'description' => 'required|max:500',
-            'note' => 'required|numeric|between:0,5.00',
-            'image' => 'required|max:100',
+            'description'  => 'required|string',
+            'note'         => 'nullable|numeric|min:0|max:5',
+            'prix'         => 'required|numeric|min:0',
+            'image'        => 'nullable', // fichier OU chaîne
         ]);
-    
-        $puzzle = new Puzzle();
-        $puzzle->nom = $request->nom;
-        $puzzle->prix = $request->prix;
-        $puzzle->categorie_id = $data['categorie_id']; // <== ici
-        $puzzle->description = $request->description;
-        $puzzle->note = $request->note;
-        $puzzle->image = $request->image;
-        $puzzle->save();
-    
-        return back()->with('message', "Le puzzle a bien été créé !");
+
+        // FICHIER uploadé → garder le NOM ORIGINAL sans date
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+
+            // on sécurise juste un peu le nom (retire / et \ pour éviter un path accidentel)
+            $original = $file->getClientOriginalName();
+            $filename = str_replace(['\\', '/'], '-', trim($original));
+
+            // stocker dans disk "public" → /storage/img/...
+            // en BDD on garde "img/filename.ext"
+            $path = $file->storeAs('img', $filename, 'public'); // ex: "img/help.png"
+            $data['image'] = $path;
+        }
+        // CHAÎNE simple → préfixe "img/" si besoin
+        elseif (!empty($data['image'])) {
+            $img = trim($data['image']);
+            if (!\Illuminate\Support\Str::startsWith($img, ['http://','https://','img/','/storage/'])) {
+                $img = 'img/'.ltrim($img, '/');
+            }
+            $data['image'] = $img;
+        }
+
+        $puzzle = \App\Models\Puzzle::create($data);
+
+        return redirect()->route('puzzles.edit', $puzzle)
+            ->with('message', 'Puzzle créé.');
     }
+
 
     /**
      * Display the specified resource.
      */
     public function show(Puzzle $puzzle)
     {
-        return view('puzzles.show' , compact('puzzle')) ;
+        $related = Puzzle::query()
+            ->where('id', '!=', $puzzle->id)
+            ->when($puzzle->categorie_id, fn($q) =>
+                $q->where('categorie_id', $puzzle->categorie_id)
+            )
+            ->inRandomOrder()
+            ->take(8)
+            ->get();
+
+        return view('puzzles.show', compact('puzzle', 'related'));
     }
 
     /**
@@ -65,33 +115,50 @@ class PuzzleController extends Controller
      */
     public function edit(Puzzle $puzzle)
     {
-        return view('puzzles.edit' , compact('puzzle')) ;
+        $categories = Categorie::orderBy('nom')->get();
+        return view('puzzles.edit', compact('puzzle','categories'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Puzzle $puzzle)
+    public function update(Request $request, \App\Models\Puzzle $puzzle)
     {
         $data = $request->validate([
-            'nom' => 'required|max:100',
-            'prix' => 'required|numeric|between:0,999.99',
-            'categorie_id' => 'required|max:100',
-            'description' => 'required|max:500',
-            'note' => 'required|numeric|between:0,5.00',
-            'image' => 'required|max:100',
+            'nom'          => 'required|string|max:255',
+            'categorie_id' => 'required|exists:categories,id',
+            'description'  => 'required|string',
+            'note'         => 'nullable|numeric|min:0|max:5',
+            'prix'         => 'required|numeric|min:0',
+            'image'        => 'nullable', // fichier OU chaîne
         ]);
-        
-        $puzzle->nom = $request->nom;
-        $puzzle->prix = $request->prix;
-        $puzzle->categorie = $request->categorie;
-        $puzzle->description = $request->description;
-        $puzzle->note = $request->note;
-        $puzzle->image = $request->image;
-        
-        $puzzle->save(); // N'oublie pas de sauvegarder l'objet pour que les modifications soient appliquées
-        
-        return back()->with('message', "Le puzzle a bien été mis a jour !");
+
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+
+            // garder le NOM ORIGINAL, sans suffixe date
+            $original = $file->getClientOriginalName();
+            $filename = str_replace(['\\', '/'], '-', trim($original));
+
+            $path = $file->storeAs('img', $filename, 'public'); // "img/help.png"
+            $data['image'] = $path;
+
+        } elseif (array_key_exists('image', $data) && !empty($data['image'])) {
+            $img = trim($data['image']);
+            if (!\Illuminate\Support\Str::startsWith($img, ['http://','https://','img/','/storage/'])) {
+                $img = 'img/'.ltrim($img, '/');
+            }
+            $data['image'] = $img;
+
+        } else {
+            // champ omis → ne pas écraser l’ancienne image
+            unset($data['image']);
+        }
+
+        $puzzle->update($data);
+
+        return redirect()->route('puzzles.edit', $puzzle)
+            ->with('message', 'Puzzle mis à jour.');
     }
 
     /**
@@ -99,16 +166,13 @@ class PuzzleController extends Controller
      */
     public function destroy(Puzzle $puzzle)
     {
-        $puzzle -> delete();
-        return redirect()-> route('puzzles.index')->with('message', "le puzzle a bien été supprimé");
+        $puzzle->delete();
+        return redirect()->route('puzzles.index')->with('message', "Le puzzle a bien été supprimé");
     }
 
     public function byCategorie(Categorie $categorie)
     {
-        // Charge les puzzles liés à cette catégorie
         $puzzles = $categorie->puzzles()->get();
-
         return view('puzzles.byCategorie', compact('categorie', 'puzzles'));
     }
-
 }
