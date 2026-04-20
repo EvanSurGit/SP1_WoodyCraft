@@ -1,10 +1,10 @@
 {{-- resources/views/puzzles/show.blade.php --}}
 @php
     use Illuminate\Support\Str;
-    // Normalise la galerie: tableau d'URLs absolues (storage ou http)
+    // Normalise la galerie: tableau d'URLs absolues
     $gallery = collect($puzzle->gallery ?? [$puzzle->image])
         ->filter()
-        ->map(fn($p) => Str::startsWith($p, ['http://','https://']) ? $p : asset('storage/'.$p))
+        ->map(fn($p) => Str::startsWith($p, ['http://','https://']) ? $p : asset($p))
         ->values()
         ->all();
 @endphp
@@ -150,7 +150,7 @@
             <a href="{{ route('puzzles.show', $r->id) }}" class="group block">
               <div class="rounded-2xl border border-gray-200 bg-white p-4 hover:shadow-sm transition">
                 <div class="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-50">
-                  <img src="{{ $r->image_url ?? (Str::startsWith($r->image,'http') ? $r->image : asset('storage/'.$r->image)) }}"
+                  <img src="{{ $r->image_url ?? (Str::startsWith($r->image,'http') ? $r->image : asset($r->image)) }}"
                        alt="{{ $r->nom }}"
                        class="h-full w-full object-cover group-hover:scale-[1.03] transition" />
                 </div>

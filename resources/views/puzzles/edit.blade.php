@@ -6,96 +6,61 @@
     </x-slot>
 
     <x-puzzles-card>
-        <!-- Message de réussite -->
         @if (session()->has('message'))
             <div class="mt-3 mb-4 list-disc list-inside text-sm text-green-600">
                 {{ session('message') }}
             </div>
         @endif
 
-        <form action="{{ route('puzzles.update', $puzzle->id) }}" method="post">
+        <form action="{{ route('puzzles.update', $puzzle->id) }}" method="post" enctype="multipart/form-data">
             @csrf
             @method('put')
 
-            <!-- Titre -->
             <div>
                 <x-input-label for="nom" :value="__('Nom')" />
-
-                <x-text-input 
-                    id="nom" 
-                    class="block mt-1 w-full" 
-                    type="text" 
-                    name="nom" 
-                    :value="old('nom', $puzzle->nom)" 
-                    required 
-                    autofocus 
-                />
-
+                <x-text-input id="nom" class="block mt-1 w-full" type="text" name="nom" :value="old('nom', $puzzle->nom)" required autofocus />
                 <x-input-error :messages="$errors->get('nom')" class="mt-2" />
             </div>
 
-            <!-- Prix -->
             <div class="mt-4">
                 <x-input-label for="prix" :value="__('Prix')" />
-
-                <x-textarea 
-                    class="block mt-1 w-full" 
-                    id="prix" 
-                    name="prix"
-                >{{ old('prix', $puzzle->prix) }}</x-textarea>
-
-                <x-input-error :messages="$errors->get('image')" class="mt-2" />
+                <x-text-input id="prix" class="block mt-1 w-full" type="number" step="0.01" name="prix" :value="old('prix', $puzzle->prix)" required />
+                <x-input-error :messages="$errors->get('prix')" class="mt-2" />
             </div>
 
-            <!-- Categorie -->
             <div class="mt-4">
-                <x-input-label for="categorie" :value="__('Categorie')" />
-
-                <x-textarea 
-                    class="block mt-1 w-full" 
-                    id="categorie" 
-                    name="categorie"
-                >{{ old('categorie', $puzzle->categorie) }}</x-textarea>
-
-                <x-input-error :messages="$errors->get('categorie')" class="mt-2" />
+                <x-input-label for="categorie_id" :value="__('Categorie')" />
+                <select name="categorie_id" id="categorie_id" class="block mt-1 w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm" required>
+                    <option value="">Sélectionnez une catégorie</option>
+                    @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ old('categorie_id', $puzzle->categorie_id) == $cat->id ? 'selected' : '' }}>
+                            {{ $cat->nom }}
+                        </option>
+                    @endforeach
+                </select>
+                <x-input-error :messages="$errors->get('categorie_id')" class="mt-2" />
             </div>
 
-            <!-- description -->
             <div class="mt-4">
                 <x-input-label for="description" :value="__('Description')" />
-
-                <x-textarea 
-                    class="block mt-1 w-full" 
-                    id="description" 
-                    name="description"
-                >{{ old('description', $puzzle->description) }}</x-textarea>
-
+                <x-textarea class="block mt-1 w-full" id="description" name="description" required>{{ old('description', $puzzle->description) }}</x-textarea>
                 <x-input-error :messages="$errors->get('description')" class="mt-2" />
             </div>
 
-            <!-- Note -->
             <div class="mt-4">
                 <x-input-label for="note" :value="__('Note')" />
-
-                <x-textarea 
-                    class="block mt-1 w-full" 
-                    id="note" 
-                    name="note"
-                >{{ old('note', $puzzle->note) }}</x-textarea>
-
-                <x-input-error :messages="$errors->get('image')" class="mt-2" />
+                <x-text-input id="note" class="block mt-1 w-full" type="number" step="0.1" name="note" :value="old('note', $puzzle->note)" />
+                <x-input-error :messages="$errors->get('note')" class="mt-2" />
             </div>
 
-            <!-- Image -->
             <div class="mt-4">
-                <x-input-label for="image" :value="__('Image')" />
-
-                <x-textarea 
-                    class="block mt-1 w-full" 
-                    id="image" 
-                    name="image"
-                >{{ old('image', $puzzle->image) }}</x-textarea>
-
+                <x-input-label for="image" :value="__('Image (Laisser vide pour conserver l\'actuelle)')" />
+                @if($puzzle->image)
+                    <div class="mb-2">
+                        <img src="{{ asset($puzzle->image) }}" alt="Image actuelle" class="h-20 object-cover rounded">
+                    </div>
+                @endif
+                <x-text-input id="image" class="block mt-1 w-full" type="file" name="image" />
                 <x-input-error :messages="$errors->get('image')" class="mt-2" />
             </div>
 

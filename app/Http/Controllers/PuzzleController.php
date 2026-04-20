@@ -72,10 +72,9 @@ class PuzzleController extends Controller
             $original = $file->getClientOriginalName();
             $filename = str_replace(['\\', '/'], '-', trim($original));
 
-            // stocker dans disk "public" → /storage/img/...
-            // en BDD on garde "img/filename.ext"
-            $path = $file->storeAs('img', $filename, 'public'); // ex: "img/help.png"
-            $data['image'] = $path;
+            // On déplace directement l'image dans le dossier public/img/
+            $file->move(public_path('img'), $filename);
+            $data['image'] = 'img/' . $filename;
         }
         // CHAÎNE simple → préfixe "img/" si besoin
         elseif (!empty($data['image'])) {
@@ -140,8 +139,9 @@ class PuzzleController extends Controller
             $original = $file->getClientOriginalName();
             $filename = str_replace(['\\', '/'], '-', trim($original));
 
-            $path = $file->storeAs('img', $filename, 'public'); // "img/help.png"
-            $data['image'] = $path;
+            // On déplace directement l'image dans le dossier public/img/
+            $file->move(public_path('img'), $filename);
+            $data['image'] = 'img/' . $filename;
 
         } elseif (array_key_exists('image', $data) && !empty($data['image'])) {
             $img = trim($data['image']);

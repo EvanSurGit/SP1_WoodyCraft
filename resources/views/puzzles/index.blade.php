@@ -31,12 +31,11 @@
       @php
           $img = $offer->image ?? null;
           $offerImg = $img
-              ? (\Illuminate\Support\Str::startsWith($img, ['http','/storage']) ? $img : asset('storage/'.$img))
+              ? (\Illuminate\Support\Str::startsWith($img, ['http://','https://']) ? $img : asset($img))
               : null;
       @endphp
 
       <section class="mb-12">
-        <!-- Fond beige/gris doux + cadre gris-marron -->
         <div class="relative overflow-hidden rounded-[28px] bg-[#F5F3EF] ring-1 ring-[#C8B7A6]">
           <div class="grid grid-cols-1 md:grid-cols-12 items-center min-h-[380px]">
 
@@ -126,13 +125,11 @@
             {{-- Image --}}
             <div class="aspect-[4/3] bg-gray-100 overflow-hidden">
               @php
-                $img = $puzzle->image;
-                if ($img) {
-                  if (\Illuminate\Support\Str::startsWith($img, ['http://','https://','/storage/','storage/'])) {
-                    $imgUrl = \Illuminate\Support\Str::startsWith($img, '/') ? $img : '/'.$img;
-                  } else {
-                    $imgUrl = asset('storage/'.$img);
-                  }
+                $imgUrl = null;
+                if ($puzzle->image) {
+                  $imgUrl = \Illuminate\Support\Str::startsWith($puzzle->image, ['http://', 'https://']) 
+                            ? $puzzle->image 
+                            : asset($puzzle->image);
                 }
               @endphp
 
