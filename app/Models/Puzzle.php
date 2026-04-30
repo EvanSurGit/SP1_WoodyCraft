@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Puzzle extends Model
 {
+    use HasFactory; // <-- C'est cette ligne qui manquait !
+
     protected $fillable = ['nom', 'prix', 'categorie_id', 'description', 'note', 'image'];
 
     public function categorie()

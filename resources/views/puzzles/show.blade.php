@@ -73,10 +73,10 @@
 
         <div class="mt-4">
           <div class="text-2xl font-semibold">
-            €{{ number_format($puzzle->prix, 0, ',', ' ') }}
-            @if(!empty($puzzle->prix_barre))
-              <span class="ml-2 text-gray-400 line-through">€{{ number_format($puzzle->prix_barre, 0, ',', ' ') }}</span>
-            @endif
+          €{{ number_format($puzzle->prix, 2, '.', ' ') }}
+@if(!empty($puzzle->prix_barre))
+  <span class="ml-2 text-gray-400 line-through">€{{ number_format($puzzle->prix_barre, 2, '.', ' ') }}</span>
+@endif
           </div>
         </div>
 
