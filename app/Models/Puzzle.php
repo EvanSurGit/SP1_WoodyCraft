@@ -7,13 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Puzzle extends Model
 {
-    use HasFactory; // <-- C'est cette ligne qui manquait !
+    use HasFactory;
 
-    protected $fillable = ['nom', 'prix', 'categorie_id', 'description', 'note', 'image'];
+    protected $fillable = ['nom', 'prix', 'categorie_id', 'fournisseur_id', 'description', 'note', 'image'];
 
     public function categorie()
     {
         return $this->belongsTo(Categorie::class);
+    }
+
+    public function fournisseur()
+    {
+        return $this->belongsTo(Fournisseur::class);
     }
 
     public function scopeSimilarTo($query, Puzzle $puzzle)

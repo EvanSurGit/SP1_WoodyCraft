@@ -96,7 +96,7 @@
 
           <button type="submit"
                   class="inline-flex items-center justify-center rounded-xl bg-black px-6 py-3 text-white hover:bg-gray-900 transition">
-            {{ __('Add to cart') }}
+            {{ __('Ajouter Panier') }}
           </button>
         </form>
 
@@ -105,23 +105,26 @@
           <div class="flex gap-4 border-b">
             <button @click="tab='info'"
                     :class="tab==='info' ? 'border-black text-black' : 'border-transparent text-gray-500'"
-                    class="px-4 py-3 border-b-2 font-medium">{{ __('More info about the product') }}</button>
+                    class="px-4 py-3 border-b-2 font-medium">{{ __('Infos Produit') }}</button>
             <button @click="tab='comments'"
                     :class="tab==='comments' ? 'border-black text-black' : 'border-transparent text-gray-500'"
-                    class="px-4 py-3 border-b-2 font-medium">{{ __('Comments') }} ({{ $puzzle->reviews_count ?? 1 }})</button>
+                    class="px-4 py-3 border-b-2 font-medium">{{ __('Commentaires') }} ({{ $puzzle->reviews_count ?? 1 }})</button>
           </div>
 
           <div class="pt-6">
             <div x-show="tab==='info'" class="text-gray-600 space-y-2">
               <p><strong>Matériau :</strong> Bois naturel découpé avec précision</p>
-              <p><strong>Nombre de pièces :</strong> {{ $puzzle->pieces ?? '120–150' }}</p>
-              <p><strong>Dimensions assemblé :</strong> {{ $puzzle->dimensions ?? '20 × 15 × 10 cm' }}</p>
+              <p><strong>Nombre de pièces :</strong> 120–150</p>
+              <p><strong>Dimensions assemblé :</strong> 20 × 15 × 10 cm</p>
               <p><strong>Niveau :</strong> Intermédiaire</p>
               <p><strong>Outils :</strong> Aucun outil nécessaire</p>
+              @if($puzzle->fournisseur)
+                  <p><strong>Fournisseur :</strong> {{ $puzzle->fournisseur->nom }}</p>
+              @endif
             </div>
 
             <div x-show="tab==='comments'">
-              <p class="text-gray-500">{{ __('No reviews yet. Be the first!') }}</p>
+              <p class="text-gray-500">{{ __('Pas encore de commentaires , soyez le premier a en mettre un !') }}</p>
             </div>
           </div>
         </div>

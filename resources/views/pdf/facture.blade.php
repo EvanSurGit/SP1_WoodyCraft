@@ -70,7 +70,9 @@
     <table>
       <thead>
         <tr>
-          <th style="width:55%">Produit</th>
+          <!-- Modification des largeurs pour faire de la place -->
+          <th style="width:35%">Produit</th>
+          <th style="width:20%">Fournisseur</th>
           <th style="width:10%" class="right">Qté</th>
           <th style="width:15%" class="right">PU (€)</th>
           <th style="width:20%" class="right">Sous-total (€)</th>
@@ -80,6 +82,7 @@
         @foreach($commande->items as $it)
           <tr>
             <td>{{ $it->puzzle->nom }}</td>
+            <td>{{ $it->puzzle->fournisseur->nom ?? 'Non renseigné' }}</td>
             <td class="right">{{ $it->quantity }}</td>
             <td class="right">{{ number_format($it->unit_price, 2, ',', ' ') }}</td>
             <td class="right">{{ number_format($it->quantity * $it->unit_price, 2, ',', ' ') }}</td>
@@ -88,7 +91,8 @@
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="3" class="right total">Total TTC</td>
+          <!-- Le colspan passe de 3 à 4 pour s'aligner correctement -->
+          <td colspan="4" class="right total">Total TTC</td>
           <td class="right total">{{ number_format($commande->total_ttc, 2, ',', ' ') }}</td>
         </tr>
       </tfoot>
@@ -101,7 +105,7 @@
         Indiquez le n° de facture <strong>#{{ $commande->id }}</strong> au dos du chèque.
       </div>
       <div class="col small muted" style="text-align:right">
-        TVA : non applicable — art. 293B CGI
+        TVA : non applicable — art. 33 du RGPD
       </div>
     </div>
   </div>

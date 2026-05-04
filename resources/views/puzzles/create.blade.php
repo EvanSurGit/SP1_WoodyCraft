@@ -54,6 +54,19 @@
                 @endif
             </div>
 
+            <div class="mb-4">
+                <label for="fournisseur_id">Fournisseur</label>
+                <select name="fournisseur_id" id="fournisseur_id" class="form-control">
+                    <option value="">-- Aucun fournisseur (Optionnel) --</option>
+                    @foreach($fournisseurs as $fournisseur)
+                        <option value="{{ $fournisseur->id }}" 
+                        {{ (isset($puzzle) && $puzzle->fournisseur_id == $fournisseur->id) ? 'selected' : '' }}>
+                        {{ $fournisseur->nom }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             {{-- Description --}}
             <div class="mt-4">
                 <x-input-label for="description" :value="__('Description')" />

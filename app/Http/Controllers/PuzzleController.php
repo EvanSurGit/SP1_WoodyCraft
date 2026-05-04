@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Puzzle;
 use App\Models\Categorie;
 use Illuminate\Support\Str;
+use App\Models\Fournisseur;
 
 class PuzzleController extends Controller
 {
@@ -47,7 +48,9 @@ class PuzzleController extends Controller
     public function create()
     {
         $categories = Categorie::orderBy('nom')->get();
-        return view('puzzles.create', compact('categories'));
+        $fournisseurs = Fournisseur::orderBy('nom')->get();
+
+        return view('puzzles.create', compact('categories', 'fournisseurs'));
     }
 
     /**
@@ -56,12 +59,13 @@ class PuzzleController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nom'          => 'required|string|max:255',
-            'categorie_id' => 'required|exists:categories,id',
-            'description'  => 'required|string',
-            'note'         => 'nullable|numeric|min:0|max:5',
-            'prix'         => 'required|numeric|min:0',
-            'image'        => 'nullable', // fichier OU chaîne
+            'nom'            => 'required|string|max:255',
+            'categorie_id'   => 'required|exists:categories,id',
+            'fournisseur_id' => 'nullable|exists:fournisseurs,id', 
+            'description'    => 'required|string',
+            'note'           => 'nullable|numeric|min:0|max:5',
+            'prix'           => 'required|numeric|min:0',
+            'image'          => 'nullable',
         ]);
 
         // FICHIER uploadé → garder le NOM ORIGINAL sans date
@@ -115,7 +119,9 @@ class PuzzleController extends Controller
     public function edit(Puzzle $puzzle)
     {
         $categories = Categorie::orderBy('nom')->get();
-        return view('puzzles.edit', compact('puzzle','categories'));
+        $fournisseurs = Fournisseur::orderBy('nom')->get(); 
+
+        return view('puzzles.edit', compact('puzzle', 'categories', 'fournisseurs'));
     }
 
     /**
@@ -124,13 +130,15 @@ class PuzzleController extends Controller
     public function update(Request $request, \App\Models\Puzzle $puzzle)
     {
         $data = $request->validate([
-            'nom'          => 'required|string|max:255',
-            'categorie_id' => 'required|exists:categories,id',
-            'description'  => 'required|string',
-            'note'         => 'nullable|numeric|min:0|max:5',
-            'prix'         => 'required|numeric|min:0',
-            'image'        => 'nullable', // fichier OU chaîne
+            'nom'            => 'required|string|max:255',
+            'categorie_id'   => 'required|exists:categories,id',
+            'fournisseur_id' => 'nullable|exists:fournisseurs,id',
+            'description'    => 'required|string',
+            'note'           => 'nullable|numeric|min:0|max:5',
+            'prix'           => 'required|numeric|min:0',
+            'image'          => 'nullable',
         ]);
+        
 
         if ($request->hasFile('image')) {
             $file = $request->file('image');
